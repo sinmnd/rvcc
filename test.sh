@@ -24,5 +24,8 @@ assert(){
 
 assert 25 25
 assert 42 42+6+9-5-10
+assert 23 "22+      6 
+ + 9 -5- 10 +1"
+
 
 echo OK
