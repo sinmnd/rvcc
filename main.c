@@ -20,6 +20,9 @@ struct Token{
 };
 
 typedef struct Token *Token;
+
+static char *CurrentInput;
+
 static void error(char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -28,6 +31,32 @@ static void error(char *fmt, ...) {
     va_end(ap);
     exit(1);
 }
+
+static void vErrorAt(char *loc, char *fmt, va_list ap) {
+    int pos = loc - CurrentInput;
+
+    fprintf(stderr, "%s\n", CurrentInput);
+    fprintf(stderr, "%*s", pos, "");
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    va_end(ap);
+
+    exit(1);
+}
+
+static void errorAt(char *loc, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vErrorAt(loc, fmt, ap);
+}
+
+static void errorTok(Token tok, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vErrorAt(tok->loc, fmt, ap);
+}
+
 static Token newToken(TokenKind kind, char *start, char *end) {
     Token tok = calloc(1, sizeof(struct Token));
     tok->kind = kind;
@@ -38,7 +67,10 @@ static Token newToken(TokenKind kind, char *start, char *end) {
 }
 
 
-static Token tokenize(char *p) {
+static Token tokenize() {
+
+    char *p = CurrentInput;
+
     Token head = calloc(1, sizeof(struct Token));
 
     Token cur = head;
@@ -64,8 +96,8 @@ static Token tokenize(char *p) {
             ++p;
             continue;
         }
-
-        error("invalid token: %c", *p);
+        errorAt(p, "invalid token: %c", *p);
+        // error("invalid token: %c", *p);
     }
     cur->next = newToken(TK_EOF, p, p);
 
@@ -74,7 +106,7 @@ static Token tokenize(char *p) {
 
 static int getNumber(Token tok) {
     if(tok->kind != TK_NUM) {
-        error("expected a number, got %u", tok->kind);
+        errorTok(tok, "expected a number");
     }
     return tok->val;
 }
@@ -85,7 +117,8 @@ static bool equal(Token tok, char *op) {
 
 static Token skip(Token tok, char *op) {
     if(!equal(tok, op)) {
-        error("expected '%s'", op);
+        errorTok(tok, "expected '%s'", op);
+        // error("expected '%s'", op);
     }
     return tok->next;
 }
@@ -97,7 +130,8 @@ int main(int argc, char *argv[]) {
         error("%s: invalid number of arguments", argv[0]);
     }
 
-    Token tok = tokenize(argv[1]);
+    CurrentInput = argv[1];
+    Token tok = tokenize();
 
 
     printf("  .globl main\n");
