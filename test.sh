@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+
 assert(){
     expect="$1"
 

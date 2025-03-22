@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+
 typedef enum {
     TK_OP,
     TK_NUM,
@@ -31,6 +32,7 @@ static void error(char *fmt, ...) {
     va_end(ap);
     exit(1);
 }
+
 
 static void vErrorAt(char *loc, char *fmt, va_list ap) {
     int pos = loc - CurrentInput;
@@ -122,6 +124,7 @@ static Token skip(Token tok, char *op) {
     }
     return tok->next;
 }
+
 
 int main(int argc, char *argv[]) {
     
